@@ -22,6 +22,7 @@
 \usepackage{booktabs}
 \usepackage{mathtools}
 \usepackage[export]{adjustbox}
+\usepackage[symbol]{footmisc}
 
 \aclfinalcopy % Uncomment this line for the final submission
 \def\aclpaperid{197} %  Enter the acl Paper ID here
@@ -54,7 +55,7 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-In document-level sentiment classification, each document must be mapped to a fixed length vector. Document embedding models map each document to a dense, low-dimensional vector in continuous vector space. This paper proposes training document embeddings using cosine similarity instead of dot product. Experiments on the IMDB dataset show that accuracy is improved when using cosine similarity compared to using dot product, while using feature combination with Naïve Bayes weighted bag of n-grams achieves a new state of the art accuracy of 97.42\%. Code to reproduce all experiments is available at https://github.com/tanthongtan/dv-cosine. 
+In document-level sentiment classification, each document must be mapped to a fixed length vector. Document embedding models map each document to a dense, low-dimensional vector in continuous vector space. This paper proposes training document embeddings using cosine similarity instead of dot product. Experiments on the IMDB dataset show that accuracy is improved when using cosine similarity compared to using dot product, while using feature combination with Naïve Bayes weighted bag of n-grams achieves a competitive accuracy of 93.68\%\textsuperscript{\ref{footnote-label}}. Code to reproduce all experiments is available at https://github.com/tanthongtan/dv-cosine. 
 \end{abstract}
 
 \section{Introduction}
@@ -296,7 +297,7 @@ Figure~\ref{plot} shows the projection of the embeddings along their first two p
 
 \subsection{Feature Combination}
 
-Another contribution of this paper is demonstrating the effectiveness of concatenating naive bayes weighted bag of n-grams with DV-ngram, L2R dot product, or document vectors trained with cosine similarity, the last achieving state of the art accuracy on the IMDB dataset. We note that all models utilize unigrams to trigrams and additional unlabeled data if possible. 
+Another contribution of this paper is demonstrating the effectiveness of concatenating naive bayes weighted bag of n-grams with DV-ngram, L2R dot product, or document vectors trained with cosine similarity, the last achieving a competitive accuracy on the IMDB dataset. We note that all models utilize unigrams to trigrams and additional unlabeled data if possible. 
 Table \ref{mc} shows a comparison between our
 proposed models (shown in bold) and previous
 state of the arts and other published results. 
@@ -321,10 +322,16 @@ state of the arts and other published results.
 		\cite{le2014} & \\
 		\bf{Document Vectors using} & \bf{93.13} \\
 		\bf{Cosine Similarity} & \\
+		\bf{NB-weighted-BON +} & \bf{93.16} \textsuperscript{\ref{footnote-label}} \\
+		\bf{DV-ngram} & \\
+		\bf{NB-weighted-BON +} & \bf{93.35} \textsuperscript{\ref{footnote-label}} \\
+		\bf{L2R Dot Product} & \\
 		W-Neural-BON Ensemble & 93.51 \\
 		\cite{li2016b} & \\
 		TGNR Ensemble & 93.51 \\
 		\cite{li2017} & \\
+		\bf{NB-weighted-BON +} & \bf{93.68} \textsuperscript{\ref{footnote-label}} \\
+		\bf{Cosine Similarity} & \\
 		TopicRNN & 93.76 \\
 		\cite{dieng2017} & \\
 		One-hot bi-LSTM & 94.06 \\
@@ -333,12 +340,6 @@ state of the arts and other published results.
 		\cite{miyato2016} & \\
 		BERT large finetune UDA & 95.80\\
 		\cite{xie2019} & \\
-		\bf{NB-weighted-BON +} & \bf{96.95} \\
-		\bf{DV-ngram} & \\
-		\bf{NB-weighted-BON +} & \bf{97.17} \\
-		\bf{L2R Dot Product} & \\
-		\bf{NB-weighted-BON +} & \bf{97.42} \\
-		\bf{Cosine Similarity} & \\
 		\bottomrule
 	\end{tabular}
 	\caption{Comparison with other models.}
@@ -347,7 +348,12 @@ state of the arts and other published results.
 
 \section{Conclusion and Future Work}
 
+
+
 Our proposed model trains document embeddings using cosine similarity as the similarity measure and we show that sentiment classification performance on the IMDB dataset is improved when utilizing these embeddings as opposed to those trained using dot-product. Cosine similarity may help reduce overfitting to the embedding task, and this regularization in turn produces more useful embeddings. We also show that concatenating these embeddings with Naïve bayes weighed bag of n-grams results in high accuracy on the IMDB dataset. 
+
+\footnotetext[2]{ \label{footnote-label} These values were previously incorrectly reported as 96.95, 97.17, and 97.42, for NB-weighted-BON + DV-ngram, NB-weighted-BON + L2R Dot Product, and NB-weighted-BON + Cosine Similarity, respectively, due to a bug in the implementation of the ensembles. Essentially, the datasets were shuffled but organized into blocks of the same split and label, which normally wouldn’t cause any problems except when combined in order to build the ensembles. In the ensembles, each document was incorrectly matched with a different document but within the same class. This has resulted in a data leakage causing higher than normal accuracies. We’ve regretfully made a mistake in failing to ensure that the documents used to build the ensembles were correctly matched, or that the documents in the two files used to build the ensembles were in the same order. As the problem arose due to incorrect concatenation, only the ensembles were affected; all the other models and the main results of the paper are unaffected. For a detailed analysis of the issue, please refer to \cite{bingyu2022}.
+The issue has since been resolved, the documents correctly matched, and the correct accuracies of the ensembles displayed in table \ref{mc}.}
 
  An important future development is to carry out experiments on other datasets. It is essential that we benchmark on more than one dataset, to prevent superficially good results by overfitting hyperparameters or the cosine similarity model itself to  the IMDB dataset. 
 Other tasks and datasets include: (1) sentiment analysis - the Stanford sentiment treebank dataset \cite{socher2013}, the polarity dataset v2.0 \cite{pang2004}, (2) topic classification -  AthR, XGraph, BbCrypt \cite{wang2012}, and (3) semantic relatedness tasks - datasets from the SemEval semantic textual similarity (STS) tasks \cite{agirre2015}.
