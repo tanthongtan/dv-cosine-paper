@@ -1,0 +1,130 @@
+%
+% File acl2019.tex
+%
+%% Based on the style files for ACL 2018, NAACL 2018/19, which were
+%% Based on the style files for ACL-2015, with some improvements
+%%  taken from the NAACL-2016 style
+%% Based on the style files for ACL-2014, which were, in turn,
+%% based on ACL-2013, ACL-2012, ACL-2011, ACL-2010, ACL-IJCNLP-2009,
+%% EACL-2009, IJCNLP-2008...
+%% Based on the style files for EACL 2006 by 
+%%e.agirre@ehu.es or Sergi.Balari@uab.es
+%% and that of ACL 08 by Joakim Nivre and Noah Smith
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[hyperref]{acl2019}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{amsmath}
+\usepackage{fixmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{mathtools}
+
+%\aclfinalcopy % Uncomment this line for the final submission
+%\def\aclpaperid{***} %  Enter the acl Paper ID here
+
+%\setlength\titlebox{5cm}
+% You can expand the titlebox if you need extra space
+% to show all the authors. Please do not make the titlebox
+% smaller than 5cm (the original size); we will check this
+% in the camera-ready version and ask you to change it back.
+
+\newcommand\BibTeX{B\textsc{ib}\TeX}
+
+\title{Instructions for ACL 2019 Proceedings}
+
+\author{First Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{email@domain} \\\And
+  Second Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{email@domain} \\}
+
+\date{}
+
+\begin{document}
+
+\appendix
+
+\section{Obtaining the weight update equations in the case of cosine similarity}
+
+To obtain the weight update equations for the input and output vectors of our model in each iteration of stochastic gradient descent, we must find the gradient of the error function at a given training example, which may be considered a document, n-gram pair. 
+
+Let: 
+\begin{align}
+E =  &- \log \sigma \left( \alpha \cos \theta_{w_o} \right) \nonumber \\
+&- \sum_{w_n \in W_{neg}} \log \sigma \left( - \alpha \cos \theta_{w_n} \right)  
+\end{align}
+where:
+\begin{equation}
+\cos \theta_w = \frac {\mathbold{v}_d^T \mathbold{v}_w} {\lVert \mathbold{v}_d \rVert \lVert \mathbold{v}_w \rVert}
+\end{equation}
+be the objective function at a single training example $(d,w_o)$. Then, to find the gradient of $E$ first differentiate $E$ with respect to $\cos \theta_w$: 
+\begin{equation}
+\frac {\partial E} {\partial \cos \theta_w} = \alpha \left( \sigma \left( \alpha \cos \theta_w \right) - t \right)
+\end{equation}
+where $t = 1$ if $w = w_o$; $0$ otherwise. We then obtain the derivative of $E$ w.r.t. the output n-gram vectors: 
+\begin{equation}
+\frac {\partial E} {\partial \mathbold{v}_w} = \frac {\partial E} {\partial \cos \theta_w} \cdot \frac {\partial \cos \theta_w} {\partial \mathbold{v}_w} 
+\end{equation}
+\begin{align}
+\frac {\partial E} {\partial \mathbold{v}_w} = {}&\alpha \left( \sigma \left( \alpha \cos \theta_w \right) - t \right) \nonumber \\
+&\cdot\left( \frac {\mathbold{v}_d} {\lVert \mathbold{v}_d \rVert \lVert \mathbold{v}_w \rVert} - \frac { \mathbold{v}_w\left(\mathbold{v}_d^T \mathbold{v}_w\right)} {\lVert \mathbold{v}_d \rVert \lVert \mathbold{v}_w \rVert^3} \right)
+\end{align}
+
+This leads to the following weight update equation for the output vectors: 
+\begin{equation}
+\mathbold{v}_w^{(new)} = \mathbold{v}_w^{(old)} - \eta \frac {\partial E} {\partial \mathbold{v}_w}
+\end{equation}
+where $\eta$ is the learning rate. This equation needs to be applied to all $w \in \{w_o\} \cup W_{neg}$ in each iteration.
+
+Next, the errors are backpropagated and the input document vectors are updated. Differentiating $E$ with respect to $\mathbold{v}_d$: 
+\begin{equation}
+\frac {\partial E} {\partial \mathbold{v}_d} = \sum_{w \in \{w_o\} \cup W_{neg}}  \frac {\partial E} {\partial \cos \theta_w} \cdot \frac {\partial \cos \theta_w} {\partial \mathbold{v}_d}
+\end{equation}
+\begin{align}
+{}= \sum_{\mathclap{w \in \{w_o\} \cup W_{neg}}}{} &\alpha \left( \sigma \left( \alpha \cos \theta_w \right) - t \right) \nonumber \\
+&\cdot\left( \frac {\mathbold{v}_w} {\lVert \mathbold{v}_d \rVert \lVert \mathbold{v}_w \rVert} - \frac { \mathbold{v}_d\left(\mathbold{v}_d^T \mathbold{v}_w\right)} {\lVert \mathbold{v}_d \rVert^3 \lVert \mathbold{v}_w \rVert} \right)
+\end{align}
+
+Thus, we obtain the weight update equation for the input vector in each iteration: 
+\begin{equation}
+\mathbold{v}_d^{(new)} = \mathbold{v}_d^{(old)} - \eta \frac {\partial E} {\partial \mathbold{v}_d}
+\end{equation}
+
+\section{Weight update equations in the case of dot product}
+This section contains the weight update equations for the input and output vectors of the dot product model in each iteration of stochastic gradient descent.
+
+The following weight update equations for the output vectors:
+\begin{equation}
+\mathbold{v}_w^{(new)} = \mathbold{v}_w^{(old)} - \eta \left( \sigma \left( \mathbold{v}_d^T \mathbold{v}_w \right) - t \right) \cdot \mathbold{v}_d
+\end{equation}
+where $t = 1$ if $w = w_o$; $0$ otherwise, needs to be applied to all $w \in \{w_o\} \cup W_{neg}$ in each iteration.
+
+The following weight update equation needs to be applied to the input vector in each iteration:
+\begin{equation}
+\mathbold{v}_d^{(new)} = \mathbold{v}_d^{(old)} - \eta \sum_{\mathclap{w \in \{w_o\} \cup W_{neg}}} \left( \sigma \left( \mathbold{v}_d^T \mathbold{v}_w \right) - t \right) \cdot \mathbold{v}_w
+\end{equation}
+
+\section{Weight update equations in the case of L2R dot product}
+This section contains the weight update equations for the input and output vectors of the L2R dot product model in each iteration of stochastic gradient descent.
+
+The following weight update equations for the output vectors:
+\begin{align}
+\mathbold{v}_w^{(new)} = \mathbold{v}_w^{(old)} &- \eta \left( \sigma \left( \mathbold{v}_d^T \mathbold{v}_w \right) - t \right) \cdot \mathbold{v}_d \nonumber \\
+&- \eta \lambda \mathbold{v}_w
+\end{align}
+where $t = 1$ if $w = w_o$; $0$ otherwise, needs to be applied to all $w \in \{w_o\} \cup W_{neg}$ in each iteration.
+
+The following weight update equation needs to be applied to the input vector in each iteration:
+\begin{align}
+\mathbold{v}_d^{(new)} = \mathbold{v}_d^{(old)} &- \eta \sum_{\mathclap{w \in \{w_o\} \cup W_{neg}}} \left( \sigma \left( \mathbold{v}_d^T \mathbold{v}_w \right) - t \right) \cdot \mathbold{v}_w \nonumber \\
+&- \eta \lambda \mathbold{v}_d
+\end{align}
+\end{document}
